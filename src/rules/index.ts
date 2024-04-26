@@ -17,3 +17,13 @@ export const defaultRules: readonly Rule[] = [
   boundsRule,
   itemsRule,
 ];
+
+export {
+  additionalPropertiesRule,
+  boundsRule,
+  enumRule,
+  itemsRule,
+  propertiesRule,
+  requiredRule,
+  typeRule,
+};
