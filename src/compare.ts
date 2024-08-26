@@ -62,3 +62,10 @@ function walk(
 
 function sharedPropertyNames(left: JsonSchema, right: JsonSchema): string[] {
   const before = left.properties;
+  if (typeof before !== 'object' || before === null) return [];
+  return Object.keys(before).filter((name) => isSchema(right.properties?.[name])).sort();
+}
+
+function isSchema(input: unknown): input is JsonSchema {
+  return typeof input === 'object' && input !== null && !Array.isArray(input);
+}
