@@ -1,2 +1,10 @@
 export { compareSchemas } from './compare';
-export type { JsonSchema, Rule, RuleContext, SchemaChange, Severity } from './types';
+export type {
+  CompareOptions,
+  CompareResult,
+  JsonSchema,
+  Rule,
+  RuleContext,
+  SchemaChange,
+  Severity,
+} from './types';
