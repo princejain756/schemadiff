@@ -43,16 +43,24 @@ export interface SchemaChange {
   after?: unknown;
 }
 
+export interface CompareOptions {
+  /** Report every change as breaking, regardless of the rule default. */
+  strict?: boolean;
+  /** Rule ids to skip, e.g. `['bounds', 'enum']`. */
+  ignore?: string[];
+}
+
+export interface CompareResult {
+  changes: SchemaChange[];
+  breaking: SchemaChange[];
+  nonBreaking: SchemaChange[];
+  /** True when the after document is backward compatible. */
+  ok: boolean;
+}
+
 /** Everything a rule needs in order to inspect one pair of schemas. */
 export interface RuleContext {
   /** JSON pointer of the pair of schemas being compared. */
   path: string;
   left: JsonSchema;
   right: JsonSchema;
-}
-
-export interface Rule {
-  /** Stable id, also used by the `ignore` option. */
-  id: string;
-  apply(context: RuleContext): SchemaChange[];
-}
