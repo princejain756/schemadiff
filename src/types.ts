@@ -64,3 +64,10 @@ export interface RuleContext {
   path: string;
   left: JsonSchema;
   right: JsonSchema;
+}
+
+export interface Rule {
+  /** Stable id, also used by the `ignore` option. */
+  id: string;
+  apply(context: RuleContext): SchemaChange[];
+}
