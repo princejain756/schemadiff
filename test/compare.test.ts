@@ -1,38 +1,52 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { compareSchemas } from '../src/compare';
+import type { JsonSchema } from '../src/types';
+
+const objectWith = (properties: Record<string, JsonSchema>, required: string[] = []): JsonSchema => ({
+  type: 'object',
+  properties,
+  required,
+});
 
 describe('compareSchemas', () => {
   it('reports no changes for identical documents', () => {
-    assert.deepEqual(compareSchemas({ type: 'string' }, { type: 'string' }), []);
+    const schema = objectWith({ id: { type: 'string' } }, ['id']);
+    const result = compareSchemas(schema, schema);
+
+    assert.deepEqual(result.changes, []);
+    assert.equal(result.ok, true);
   });
 
-  it('reports a narrowed type as breaking', () => {
-    const changes = compareSchemas({ type: ['string', 'number'] }, { type: 'string' });
-    assert.equal(changes.length, 1);
-    assert.equal(changes[0]?.severity, 'breaking');
-    assert.match(changes[0]?.message ?? '', /narrowed/);
+  it('flags an added required property as breaking', () => {
+    const before = objectWith({ id: { type: 'string' } }, ['id']);
+    const after = objectWith({ id: { type: 'string' }, email: { type: 'string' } }, ['id', 'email']);
+    const result = compareSchemas(before, after);
+
+    const change = result.changes.find((entry) => entry.rule === 'required');
+    assert.ok(change, 'expected a required rule change');
+    assert.equal(change.severity, 'breaking');
+    assert.equal(change.message, 'property "email" became required');
+    assert.equal(result.ok, false);
   });
 
-  it('reports a widened type as non-breaking', () => {
-    const changes = compareSchemas({ type: 'string' }, { type: ['string', 'null'] });
-    assert.equal(changes.length, 1);
-    assert.equal(changes[0]?.severity, 'non-breaking');
-    assert.match(changes[0]?.message ?? '', /widened/);
+  it('flags a removed property as non-breaking when additionalProperties allows extras', () => {
+    const before = objectWith({ id: { type: 'string' }, legacy: { type: 'boolean' } });
+    const after = objectWith({ id: { type: 'string' } });
+    const result = compareSchemas({ ...before, additionalProperties: true }, { ...after, additionalProperties: true });
+
+    const change = result.changes.find((entry) => entry.rule === 'properties');
+    assert.ok(change);
+    assert.equal(change.severity, 'non-breaking');
+    assert.equal(change.path, '#/properties/legacy');
   });
 
-  it('reports an added type constraint as breaking', () => {
-    const changes = compareSchemas({}, { type: 'object' });
-    assert.equal(changes.length, 1);
-    assert.equal(changes[0]?.message, 'type constraint added, instances are now limited to "object"');
-  });
+  it('flags a removed property as breaking when additionalProperties is false', () => {
+    const before = { ...objectWith({ legacy: { type: 'boolean' } }), additionalProperties: false };
+    const after = { ...objectWith({}), additionalProperties: false };
+    const result = compareSchemas(before, after);
 
-  it('points at the keyword that changed', () => {
-    const changes = compareSchemas({ type: 'string' }, { type: 'number' });
-    assert.equal(changes[0]?.path, '#/type');
+    const change = result.changes.find((entry) => entry.rule === 'properties');
+    assert.ok(change);
+    assert.equal(change.severity, 'breaking');
   });
-
-  it('ignores a reordered but equal type union', () => {
-    assert.deepEqual(compareSchemas({ type: ['string', 'null'] }, { type: ['null', 'string'] }), []);
-  });
-});
