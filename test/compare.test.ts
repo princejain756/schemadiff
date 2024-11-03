@@ -50,3 +50,17 @@ describe('compareSchemas', () => {
     assert.ok(change);
     assert.equal(change.severity, 'breaking');
   });
+
+  it('walks nested properties and reports the nested pointer', () => {
+    const before = objectWith({
+      owner: objectWith({ name: { type: 'string', minLength: 1 } }),
+    });
+    const after = objectWith({
+      owner: objectWith({ name: { type: 'string', minLength: 4 } }),
+    });
+    const result = compareSchemas(before, after);
+
+    assert.equal(result.changes.length, 1);
+    const change = result.changes[0];
+    assert.ok(change);
+    assert.equal(change.path, '#/properties/owner/properties/name/minLength');
