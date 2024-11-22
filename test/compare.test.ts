@@ -64,3 +64,17 @@ describe('compareSchemas', () => {
     const change = result.changes[0];
     assert.ok(change);
     assert.equal(change.path, '#/properties/owner/properties/name/minLength');
+    assert.equal(change.severity, 'breaking');
+  });
+
+  it('walks array items', () => {
+    const before: JsonSchema = { type: 'array', items: { type: 'string' } };
+    const after: JsonSchema = { type: 'array', items: { type: 'number' } };
+    const result = compareSchemas(before, after);
+
+    assert.equal(result.changes.length, 1);
+    assert.equal(result.changes[0]?.path, '#/items/type');
+  });
+
+  it('skips rules named in ignore', () => {
+    const before: JsonSchema = { type: 'string', minLength: 1 };
