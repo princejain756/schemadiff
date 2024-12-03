@@ -78,3 +78,17 @@ describe('compareSchemas', () => {
 
   it('skips rules named in ignore', () => {
     const before: JsonSchema = { type: 'string', minLength: 1 };
+    const after: JsonSchema = { type: 'string', minLength: 5 };
+    const result = compareSchemas(before, after, { ignore: ['bounds'] });
+
+    assert.deepEqual(result.changes, []);
+    assert.equal(result.ok, true);
+  });
+
+  it('reports every change as breaking in strict mode', () => {
+    const before: JsonSchema = { type: 'string' };
+    const after: JsonSchema = { type: ['string', 'number'] };
+    const result = compareSchemas(before, after, { strict: true });
+
+    assert.equal(result.changes.length, 1);
+    assert.equal(result.changes[0]?.severity, 'breaking');
