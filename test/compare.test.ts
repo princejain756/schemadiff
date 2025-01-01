@@ -92,3 +92,16 @@ describe('compareSchemas', () => {
 
     assert.equal(result.changes.length, 1);
     assert.equal(result.changes[0]?.severity, 'breaking');
+  });
+
+  it('separates breaking and non-breaking changes', () => {
+    const before: JsonSchema = { type: 'string', enum: ['a', 'b'] };
+    const after: JsonSchema = { type: 'string', enum: ['a', 'b', 'c'], minLength: 2 };
+    const result = compareSchemas(before, after);
+
+    assert.equal(result.breaking.length, 1);
+    assert.equal(result.nonBreaking.length, 1);
+    assert.deepEqual(result.breaking.map((change) => change.rule), ['bounds']);
+    assert.deepEqual(result.nonBreaking.map((change) => change.rule), ['enum']);
+  });
+});
