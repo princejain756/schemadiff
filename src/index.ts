@@ -1,4 +1,6 @@
 export { compareSchemas } from './compare';
+export { describePointer, joinPointer } from './pointers';
+export { defaultRules } from './rules';
 export type {
   CompareOptions,
   CompareResult,
