@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/user-v1.json",
+  "title": "User",
+  "type": "object",
+  "required": ["id", "name"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "role": {
+      "type": "string",
+      "enum": ["admin", "user", "guest"]
+    },
+    "tags": {
+      "type": "array",
+      "maxItems": 10,
+      "items": { "type": "string" }
+    }
+  }
+}
